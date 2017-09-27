@@ -113,6 +113,3 @@ def register():
 def unregister():
     bpy.utils.unregister_class(OpenSCADImporter)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
-
-if __name__ == "__main__":
-    pass
