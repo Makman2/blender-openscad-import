@@ -12,27 +12,25 @@ bl_info = {
     "name": "OpenSCAD importer",
     "description": "Imports OpenSCAD (.scad) files.",
     "author": "Maqq",
-    "version": (1, 2),
-    "blender": (2, 73, 0),
+    "version": (1, 3),
+    "blender": (2, 79, 0),
     "location": "File > Import",
     "warning": "", # used for warning icon and text in addons panel
     "category": "Import-Export"
 }
 
 
-def read_openscad(preferences, filepath, scale):
+def read_openscad(openscad_path, filename, scale):
     """ Exports stl using OpenSCAD and imports it. """
     from io_mesh_stl import stl_utils
     from io_mesh_stl import blender_utils
     from mathutils import Matrix
 
-    openscad_path = preferences.filepath
-
     # Export stl from OpenSCAD
     try:
         with TemporaryDirectory() as tempdir:
             tempfile_path = os.path.join(tempdir, 'tempexport.stl')
-            command = [openscad_path, '-o', tempfile_path, filepath]
+            command = [openscad_path, '-o', tempfile_path, filename]
             print("Executing command:", ' '.join(command))
             check_call(command)
             tris, normals, pts = stl_utils.read_stl(tempfile_path)
@@ -44,7 +42,7 @@ def read_openscad(preferences, filepath, scale):
             bpy.ops.object.select_all(action='DESELECT')
 
         global_matrix = Matrix.Scale(scale, 4) # Create 4x4 scale matrix
-        obj_name = os.path.basename(filepath).split('.')[0]
+        obj_name = os.path.basename(filename).split('.')[0]
         blender_utils.create_and_link_mesh(obj_name, tris, normals, pts, global_matrix)
 
     except CalledProcessError:
@@ -57,13 +55,14 @@ class OpenSCADImporterPreferences(AddonPreferences):
     """ Addon preferences. """
     bl_idname = __name__
 
-    filepath = StringProperty(
+    openscad_path = StringProperty(
             name="Path to OpenSCAD executable",
             subtype='FILE_PATH',
+            default='openscad',
             )
 
     def draw(self, context):
-        self.layout.prop(self, "filepath")
+        self.layout.prop(self, "openscad_path")
 
 
 class OpenSCADImporter(Operator, ImportHelper):
@@ -86,7 +85,7 @@ class OpenSCADImporter(Operator, ImportHelper):
 
     def execute(self, context):
         preferences = context.user_preferences.addons[__name__].preferences
-        return read_openscad(preferences, self.filepath, self.scale)
+        return read_openscad(preferences.openscad_path, self.openscad_path, self.scale)
 
 
 def menu_func_import(self, context):
