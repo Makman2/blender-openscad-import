@@ -99,4 +99,5 @@ def register():
 
 def unregister():
     bpy.utils.unregister_class(OpenSCADImporter)
+    bpy.utils.unregister_class(OpenSCADImporterPreferences)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
