@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-from subprocess import call
+from subprocess import CalledProcessError, check_call
 import os
+from tempfile import TemporaryDirectory
 import bpy
 from bpy.props import StringProperty, BoolProperty, FloatProperty, IntProperty, PointerProperty, CollectionProperty
 from bpy.types import Operator, AddonPreferences
@@ -18,9 +19,6 @@ bl_info = {
     "category": "Import-Export"
 }
 
-# Temporary stl file
-TEMPNAME = "tempexport.stl"
-
 
 def read_openscad(context, filepath, scale, parameters):
     """ Exports stl using OpenSCAD and imports it. """
@@ -31,14 +29,16 @@ def read_openscad(context, filepath, scale, parameters):
     user_preferences = context.user_preferences
     addon_prefs = user_preferences.addons[__name__].preferences
     openscad_path = addon_prefs.filepath
-    tempfile_path = os.path.join(os.path.dirname(filepath), TEMPNAME)
 
     # Export stl from OpenSCAD
-    command = [openscad_path, '-o', tempfile_path, filepath]
-    print("Executing command:", ' '.join(command))
-    call(command)
+    try:
+        with TemporaryDirectory() as tempdir:
+            tempfile_path = os.path.join(tempdir, 'tempexport.stl')
+            command = [openscad_path, '-o', tempfile_path, filepath]
+            print("Executing command:", ' '.join(command))
+            check_call(command)
+            tris, pts = stl_utils.read_stl(tempfile_path)
 
-    if os.path.exists(tempfile_path):
         if bpy.ops.object.mode_set.poll():
             bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -47,11 +47,10 @@ def read_openscad(context, filepath, scale, parameters):
 
         global_matrix = Matrix.Scale(scale, 4) # Create 4x4 scale matrix
         obj_name = os.path.basename(filepath).split('.')[0]
-        tris, pts = stl_utils.read_stl(tempfile_path)
         blender_utils.create_and_link_mesh(obj_name, tris, pts, global_matrix)
-        os.remove(tempfile_path)
-    else:
-        print("Temporary export file not found:", tempfile_path)
+
+    except CalledProcessError:
+        print('Running OpenSCAD failed.')
 
     return {'FINISHED'}
 
