@@ -35,7 +35,7 @@ def read_openscad(preferences, filepath, scale):
             command = [openscad_path, '-o', tempfile_path, filepath]
             print("Executing command:", ' '.join(command))
             check_call(command)
-            tris, pts = stl_utils.read_stl(tempfile_path)
+            tris, normals, pts = stl_utils.read_stl(tempfile_path)
 
         if bpy.ops.object.mode_set.poll():
             bpy.ops.object.mode_set(mode='OBJECT')
@@ -45,7 +45,7 @@ def read_openscad(preferences, filepath, scale):
 
         global_matrix = Matrix.Scale(scale, 4) # Create 4x4 scale matrix
         obj_name = os.path.basename(filepath).split('.')[0]
-        blender_utils.create_and_link_mesh(obj_name, tris, pts, global_matrix)
+        blender_utils.create_and_link_mesh(obj_name, tris, normals, pts, global_matrix)
 
     except CalledProcessError:
         print('Running OpenSCAD failed.')
