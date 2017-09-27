@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from subprocess import call
 import os
 import bpy
 from bpy.props import StringProperty, BoolProperty, FloatProperty, IntProperty, PointerProperty, CollectionProperty
@@ -33,11 +34,9 @@ def read_openscad(context, filepath, scale, parameters):
     tempfile_path = os.path.join(os.path.dirname(filepath), TEMPNAME)
 
     # Export stl from OpenSCAD
-    command = "\"\"%s\" -o \"%s\" \"%s\"\"" % \
-        (openscad_path, tempfile_path, filepath)
-    
-    print("Executing command:", command)
-    os.system(command)
+    command = [openscad_path, '-o', tempfile_path, filepath]
+    print("Executing command:", ' '.join(command))
+    call(command)
     
     if os.path.exists(tempfile_path):
         if bpy.ops.object.mode_set.poll():
