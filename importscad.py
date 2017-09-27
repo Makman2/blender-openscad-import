@@ -27,7 +27,7 @@ def read_openscad(context, filepath, scale, parameters):
     from io_mesh_stl import stl_utils
     from io_mesh_stl import blender_utils
     from mathutils import Matrix
-    
+
     user_preferences = context.user_preferences
     addon_prefs = user_preferences.addons[__name__].preferences
     openscad_path = addon_prefs.filepath
@@ -37,11 +37,11 @@ def read_openscad(context, filepath, scale, parameters):
     command = [openscad_path, '-o', tempfile_path, filepath]
     print("Executing command:", ' '.join(command))
     call(command)
-    
+
     if os.path.exists(tempfile_path):
         if bpy.ops.object.mode_set.poll():
             bpy.ops.object.mode_set(mode='OBJECT')
-    
+
         if bpy.ops.object.select_all.poll():
             bpy.ops.object.select_all(action='DESELECT')
 
@@ -52,7 +52,7 @@ def read_openscad(context, filepath, scale, parameters):
         os.remove(tempfile_path)
     else:
         print("Temporary export file not found:", tempfile_path)
-    
+
     return {'FINISHED'}
 
 
