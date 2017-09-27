@@ -20,15 +20,13 @@ bl_info = {
 }
 
 
-def read_openscad(context, filepath, scale):
+def read_openscad(preferences, filepath, scale):
     """ Exports stl using OpenSCAD and imports it. """
     from io_mesh_stl import stl_utils
     from io_mesh_stl import blender_utils
     from mathutils import Matrix
 
-    user_preferences = context.user_preferences
-    addon_prefs = user_preferences.addons[__name__].preferences
-    openscad_path = addon_prefs.filepath
+    openscad_path = preferences.filepath
 
     # Export stl from OpenSCAD
     try:
@@ -87,7 +85,8 @@ class OpenSCADImporter(Operator, ImportHelper):
         super(OpenSCADImporter, self).__init__()
 
     def execute(self, context):
-        return read_openscad(context, self.filepath, self.scale)
+        preferences = context.user_preferences.addons[__name__].preferences
+        return read_openscad(preferences, self.filepath, self.scale)
 
 
 def menu_func_import(self, context):
